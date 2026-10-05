@@ -144,7 +144,6 @@
       <label for="amount">المبلغ (ريال سعودي) <small>Amount, SAR</small></label>
       <input type="number" id="amount" min="0" step="0.01" inputmode="decimal" class="ltr">
       <div class="words" id="amountWords"></div>
-      <div class="hint">التفقيط تلقائي وفق معيار <span class="ltr">tafqit.com</span> (صيغة قانونية: فقط … لا غير).</div>
 
       <div class="row-3">
         <div>
@@ -204,10 +203,6 @@
     <fieldset>
       <legend>نص الخطاب <small>Body template</small></legend>
       <textarea id="template" spellcheck="false"></textarea>
-      <div class="hint">
-        العناصر بين الأقواس المعقوفة تُستبدل تلقائياً:
-        <span class="ltr">{amount} {amountWords} {cr} {bank} {facility} {period} {periodUnit} {account} {company}</span>
-      </div>
       <div class="actions" style="margin-top:8px">
         <button type="button" class="secondary small" id="resetTemplate">استعادة النص الافتراضي لهذا النوع</button>
       </div>
@@ -222,7 +217,6 @@
         <button type="button" class="secondary" id="resetAll">إعادة تعيين الكل</button>
       </div>
       <div class="status" id="status" role="status"></div>
-      <div class="hint">ملف Word يُبنى على قالب الورق الرسمي الأصلي (A4) بخط Sakkal Majalla، ويمكن تعديله وطباعته من Word مباشرة. تُحفظ بياناتك تلقائياً في هذا المتصفح.</div>
     </fieldset>
   </aside>
 
