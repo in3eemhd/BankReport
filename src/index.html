@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>خطاب طلب التمويل البنكي – أفنية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Carlito:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ui-font: "Segoe UI", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+    --letter-font: "Sakkal Majalla", "Noto Naskh Arabic", "Traditional Arabic", "Times New Roman", serif;
+    --num-font: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+    --bg: #eef1f5;
+    --panel: #ffffff;
+    --line: #d7dde6;
+    --text: #1d2733;
+    --muted: #5d6b7c;
+    --accent: #1f4e79;
+    --accent-2: #2e75b6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: var(--ui-font); font-size: 14px; }
+
+  /* ---------- App layout ---------- */
+  .app { display: grid; grid-template-columns: 400px 1fr; min-height: 100vh; }
+  .panel { background: var(--panel); border-left: 1px solid var(--line); padding: 18px 20px 40px; overflow-y: auto; max-height: 100vh; position: sticky; top: 0; }
+  .panel h1 { font-size: 18px; margin: 0 0 4px; color: var(--accent); }
+  .panel .sub { color: var(--muted); font-size: 12px; margin: 0 0 16px; }
+  fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px 14px; margin: 0 0 14px; }
+  legend { font-weight: 600; color: var(--accent); padding: 0 6px; font-size: 13px; }
+  label { display: block; font-size: 13px; margin: 8px 0 4px; }
+  label small { color: var(--muted); font-weight: normal; }
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; font: inherit; background: #fff; color: var(--text);
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-2); outline-offset: 0; border-color: var(--accent-2); }
+  textarea { min-height: 150px; line-height: 1.7; resize: vertical; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+  .types { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 6px; }
+  .types label { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; cursor: pointer; }
+  .types label:has(input:checked) { border-color: var(--accent-2); background: #eaf3fb; }
+  .types input { margin: 0; }
+  .types .en { color: var(--muted); font-size: 11px; margin-inline-start: auto; }
+  .check { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .check input { margin: 0; }
+  .words { background: #f6f8fb; border: 1px dashed var(--line); border-radius: 6px; padding: 8px 10px; font-family: var(--letter-font); font-size: 16px; line-height: 1.7; margin-top: 8px; min-height: 40px; }
+  .ltr { direction: ltr; text-align: left; font-family: var(--num-font); }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  button { font: inherit; padding: 9px 14px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+  button.secondary { background: #fff; color: var(--accent); }
+  button.small { padding: 5px 10px; font-size: 12px; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+  .gov-only { display: none; }
+  .app[data-type="gov"] .gov-only { display: block; }
+
+  /* ---------- Preview ---------- */
+  .preview { padding: 24px; overflow: auto; }
+  .sheet-wrap { margin: 0 auto; transform-origin: top center; }
+  .sheet {
+    width: 210mm; height: 297mm; position: relative; background: #fff; overflow: hidden;
+    box-shadow: 0 2px 18px rgba(0,0,0,.18);
+    font-family: var(--letter-font); font-size: 14pt; line-height: 6.9mm; color: #000; direction: rtl;
+  }
+  .sheet .letterhead { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .sheet.no-letterhead .letterhead { display: none; }
+  .sheet .content { position: absolute; top: 30mm; right: 23mm; left: 30mm; bottom: 15mm; }
+  .num { font-family: var(--num-font); font-size: 0.86em; direction: ltr; unicode-bidi: isolate; }
+
+  .meta { position: absolute; top: 0; left: 0; text-align: left; line-height: 7mm; }
+  .meta div { white-space: nowrap; }
+  .greet { margin-top: 30.7mm; }
+  .line { position: relative; margin-bottom: 5mm; }
+  .line.two { display: flex; align-items: baseline; }
+  .line.two > span:first-child { flex: 0 0 auto; padding-left: 6mm; }
+  .line.two.addr > span:first-child { min-width: 79mm; }
+  .line.two.greet-line > span:first-child { min-width: 51mm; }
+  .bold { font-weight: bold; }
+  .addr { font-size: 16pt; }
+  .body { text-align: justify; margin-bottom: 5mm; }
+  .sig { margin-top: 24mm; width: 51mm; text-align: center; font-weight: bold; font-size: 15pt; line-height: 7.4mm; position: relative; margin-inline-start: auto; white-space: nowrap; }
+  .sig .signature { position: absolute; top: 11.5mm; left: 1mm; width: 68mm; height: auto; }
+  .sheet.no-signature .signature { display: none; }
+  .empty { color: #b00; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .panel { position: static; max-height: none; border-left: 0; border-bottom: 1px solid var(--line); }
+  }
+
+  /* ---------- Print ---------- */
+  @page { size: A4; margin: 0; }
+  @media print {
+    html, body { background: #fff; height: auto; }
+    .app { display: block; }
+    .panel { display: none !important; }
+    .preview { padding: 0; overflow: visible; }
+    .sheet-wrap { transform: none !important; width: 210mm !important; height: 297mm !important; margin: 0; }
+    .sheet { box-shadow: none; page-break-after: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app" data-type="islamic">
+  <aside class="panel">
+    <h1>خطاب طلب التمويل البنكي</h1>
+    <p class="sub">Bank financing request letter – live generator. التغييرات تظهر فوراً في المعاينة، ثم اطبع أو احفظ PDF.</p>
+
+    <fieldset>
+      <legend>نوع التمويل <small>Financing type</small></legend>
+      <div class="types" id="types">
+        <label><input type="radio" name="type" value="islamic"> تمويل إسلامي – تسهيلات رواتب <span class="en">Islamic Financing</span></label>
+        <label><input type="radio" name="type" value="invoice"> تمويل فواتير <span class="en">Invoice Financing</span></label>
+        <label><input type="radio" name="type" value="gov"> فاتورة حكومية <span class="en">Government Invoice</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>القيم العددية <small>Numeric values</small></legend>
+      <label for="amount">المبلغ (ريال سعودي) <small>Amount, SAR</small></label>
+      <input type="number" id="amount" min="0" step="0.01" inputmode="decimal" class="ltr">
+      <div class="words" id="amountWords"></div>
+      <div class="hint">التفقيط تلقائي وفق معيار <span class="ltr">tafqit.com</span> (صيغة قانونية: فقط … لا غير).</div>
+
+      <div class="row-3">
+        <div>
+          <label for="period">مدة السداد <small>Repayment period</small></label>
+          <input type="number" id="period" min="0" step="1" inputmode="numeric" class="ltr">
+        </div>
+        <div>
+          <label for="periodUnit">الوحدة <small>Unit</small></label>
+          <select id="periodUnit">
+            <option>يوم</option><option>أيام</option><option>شهر</option><option>شهور</option><option>أشهر</option><option>سنة</option><option>سنوات</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="cr">رقم السجل التجاري <small>CR number</small></label>
+      <input type="text" id="cr" class="ltr" inputmode="numeric">
+      <label for="account">رقم الحساب البنكي <small>Bank account / IBAN</small></label>
+      <input type="text" id="account" class="ltr" inputmode="numeric">
+    </fieldset>
+
+    <fieldset class="gov-only">
+      <legend>بيانات الفاتورة الحكومية <small>Government invoice</small></legend>
+      <label for="invoiceNo">رقم الفاتورة <small>Invoice number</small></label>
+      <input type="text" id="invoiceNo" class="ltr">
+      <label for="entity">الجهة الحكومية المصدرة لها الفاتورة <small>Government entity</small></label>
+      <input type="text" id="entity">
+      <label for="invoiceDate">تاريخ الفاتورة <small>Invoice date</small></label>
+      <input type="date" id="invoiceDate" class="ltr">
+    </fieldset>
+
+    <fieldset>
+      <legend>بيانات الخطاب <small>Letter details</small></legend>
+      <div class="row">
+        <div>
+          <label for="date">التاريخ <small>Date</small></label>
+          <input type="date" id="date" class="ltr">
+        </div>
+        <div>
+          <label for="ref">رقم الصادر <small>Reference no.</small></label>
+          <input type="text" id="ref" class="ltr" placeholder="AF/LT/2609155">
+        </div>
+      </div>
+      <label for="bank">الجهة الموجّه إليها <small>Addressee</small></label>
+      <input type="text" id="bank">
+      <label for="subject">الموضوع <small>Subject</small></label>
+      <input type="text" id="subject">
+      <label for="facility">اسم التسهيل (بين قوسين) <small>Facility name</small></label>
+      <input type="text" id="facility">
+      <label for="company">اسم الشركة <small>Company</small></label>
+      <input type="text" id="company">
+      <div class="row">
+        <div>
+          <label for="sigTitle">المسمّى الوظيفي للموقّع <small>Signatory title</small></label>
+          <input type="text" id="sigTitle">
+        </div>
+        <div>
+          <label for="sigName">اسم الموقّع <small>Signatory name</small></label>
+          <input type="text" id="sigName">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>نص الخطاب <small>Body template</small></legend>
+      <textarea id="template" spellcheck="false"></textarea>
+      <div class="hint">
+        العناصر بين الأقواس المعقوفة تُستبدل تلقائياً:
+        <span class="ltr">{amount} {amountWords} {cr} {bank} {facility} {period} {periodUnit} {account} {company} {invoiceNo} {entity} {invoiceDate}</span>
+      </div>
+      <div class="actions" style="margin-top:8px">
+        <button type="button" class="secondary small" id="resetTemplate">استعادة النص الافتراضي لهذا النوع</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>خيارات الطباعة <small>Print options</small></legend>
+      <div class="check"><input type="checkbox" id="showLetterhead" checked><label for="showLetterhead" style="margin:0">إظهار الورق الرسمي (ألغِ التحديد عند الطباعة على ورق مطبوع مسبقاً)</label></div>
+      <div class="check"><input type="checkbox" id="showSignature" checked><label for="showSignature" style="margin:0">إظهار التوقيع</label></div>
+      <div class="actions">
+        <button type="button" id="printBtn">طباعة / حفظ PDF</button>
+        <button type="button" class="secondary" id="resetAll">إعادة تعيين الكل</button>
+      </div>
+      <div class="hint">في نافذة الطباعة اختر الوجهة «حفظ بصيغة PDF» أو الطابعة، وحجم الورق A4، والهوامش «بلا» (None). تُحفظ بياناتك تلقائياً في هذا المتصفح.</div>
+    </fieldset>
+  </aside>
+
+  <main class="preview" id="preview">
+    <div class="sheet-wrap" id="sheetWrap">
+      <div class="sheet" id="sheet">
+        <img class="letterhead" src="../assets/letterhead.jpg" alt="">
+        <div class="content">
+          <div class="meta">
+            <div>التاريخ: <span class="num" id="pDate"></span>م</div>
+            <div>الصادر: <span class="num" id="pRef"></span></div>
+          </div>
+
+          <div class="greet">
+            <div class="line two addr bold"><span id="pBank"></span><span>المحترمين</span></div>
+            <div class="line two greet-line"><span>السلام عليكم ورحمة الله وبركاته</span><span>وبعد</span></div>
+            <div class="line bold">الموضوع: <span id="pSubject"></span></div>
+            <p class="body" id="pBody"></p>
+            <div class="line">شاكرين ومقدرين حسن تعاونكم. هذا والله ولي التوفيق.</div>
+            <div class="line">وتقبلوا وافر الاحترام والتقدير ,,,,,</div>
+          </div>
+
+          <div class="sig">
+            <div id="pSigTitle"></div>
+            <div id="pSigName"></div>
+            <img class="signature" src="../assets/signature.png" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="tafqit.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Defaults per financing type (all editable in the panel) ----------
+  var STD_TEMPLATE =
+    "بالإشارة الى الموضوع أعلاه، نفيدكم نحن/ {company}، سجل تجاري رقم ({cr}) برغبتنا بالحصول على تمويل بنكي بقيمة ({amount}) ريال {amountWords}، بناءً على اتفاقية التمويل الاسلامي مع {bank} ({facility}) وعمل الفترة السداد مدة ({period}) {periodUnit}، وعليه نرجو تحويل المبلغ إلى حسابنا البنكي رقم ({account}).";
+  var GOV_TEMPLATE =
+    "بالإشارة الى الموضوع أعلاه، نفيدكم نحن/ {company}، سجل تجاري رقم ({cr}) برغبتنا بالحصول على تمويل بنكي بقيمة ({amount}) ريال {amountWords}، وذلك مقابل الفاتورة الحكومية رقم ({invoiceNo}) الصادرة إلى {entity} بتاريخ ({invoiceDate})، بناءً على اتفاقية التمويل الاسلامي مع {bank} ({facility}) وعمل الفترة السداد مدة ({period}) {periodUnit}، وعليه نرجو تحويل المبلغ إلى حسابنا البنكي رقم ({account}).";
+
+  var TYPES = {
+    islamic: { subject: "طلب تمويل بنكي – تسهيلات رواتب", facility: "تمويل رواتب الموظفين", period: 90, periodUnit: "يوم", template: STD_TEMPLATE },
+    invoice: { subject: "طلب تمويل بنكي", facility: "تمويل الفواتير", period: 9, periodUnit: "شهور", template: STD_TEMPLATE },
+    gov: { subject: "طلب تمويل بنكي – فاتورة حكومية", facility: "تمويل الفواتير الحكومية", period: 9, periodUnit: "شهور", template: GOV_TEMPLATE }
+  };
+
+  var COMMON_DEFAULTS = {
+    type: "islamic",
+    amount: "",
+    cr: "2051059942",
+    account: "3530002069940",
+    bank: "السادة / بنك الرياض",
+    company: "شركة أفنية للاستشارات الهندسية",
+    sigTitle: "الرئيس التنفيذي",
+    sigName: "م. عبد الله بن عبداللطيف بوشليبي",
+    ref: "AF/LT/",
+    date: todayISO(),
+    invoiceNo: "", entity: "", invoiceDate: "",
+    showLetterhead: true, showSignature: true,
+    templates: {}
+  };
+
+  var STORAGE_KEY = "afniah-bank-report-v1";
+  var state = load();
+
+  // ---------- Elements ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var app = $("app");
+  var fields = ["amount", "period", "periodUnit", "cr", "account", "invoiceNo", "entity", "invoiceDate", "date", "ref", "bank", "subject", "facility", "company", "sigTitle", "sigName"];
+
+  // ---------- Number to Arabic words (tafqit.com standard, legal form) ----------
+  var SAR = ["ريال سعودي", "ريالان سعوديان", "ريالات سعودية", "ريالًا سعوديًا"];
+  var HALALA = ["هللة", "هللتان", "هللات", "هللةً"];
+  function amountToWords(value) {
+    var n = Number(String(value).replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); }).replace(/,/g, ""));
+    if (!isFinite(n) || n <= 0) return "";
+    var riyals = Math.floor(n);
+    var halalas = Math.round((n - riyals) * 100);
+    if (halalas === 100) { riyals += 1; halalas = 0; }
+    var words = riyals ? tafqit(riyals, { Legal: "on", Subject: SAR }) : "";
+    if (halalas) words += (words ? " و" : "") + tafqit(halalas, { Feminine: "on", Subject: HALALA });
+    return "فقط " + words + " لا غير";
+  }
+
+  function formatAmount(value) {
+    var n = Number(String(value).replace(/,/g, ""));
+    if (!isFinite(n) || n <= 0) return "";
+    var hasFraction = Math.round((n - Math.floor(n)) * 100) !== 0;
+    return n.toLocaleString("en-US", { minimumFractionDigits: hasFraction ? 2 : 0, maximumFractionDigits: 2 });
+  }
+
+  function todayISO() {
+    var d = new Date(), p = function (x) { return (x < 10 ? "0" : "") + x; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+  function formatDate(iso) { // 2026-09-27 -> 2026/09/27
+    if (!iso) return "";
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    return m ? m[1] + "/" + m[2] + "/" + m[3] : iso;
+  }
+
+  // ---------- State ----------
+  function load() {
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (e) { saved = null; }
+    var s = Object.assign({}, COMMON_DEFAULTS, saved || {});
+    s.templates = Object.assign({}, (saved && saved.templates) || {});
+    if (!saved) applyTypeDefaults(s, s.type);
+    return s;
+  }
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable: keep working in memory */ }
+  }
+  function applyTypeDefaults(s, type) {
+    var t = TYPES[type];
+    s.type = type;
+    s.subject = t.subject;
+    s.facility = t.facility;
+    s.period = t.period;
+    s.periodUnit = t.periodUnit;
+  }
+  function currentTemplate() {
+    return state.templates[state.type] != null ? state.templates[state.type] : TYPES[state.type].template;
+  }
+
+  // ---------- Panel <-> state ----------
+  function fillPanel() {
+    app.setAttribute("data-type", state.type);
+    var radios = document.querySelectorAll('input[name="type"]');
+    for (var i = 0; i < radios.length; i++) radios[i].checked = radios[i].value === state.type;
+    fields.forEach(function (f) { $(f).value = state[f] == null ? "" : state[f]; });
+    $("template").value = currentTemplate();
+    $("showLetterhead").checked = !!state.showLetterhead;
+    $("showSignature").checked = !!state.showSignature;
+  }
+
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
+  }
+  function num(s) { return s ? '<span class="num">' + escapeHTML(s) + "</span>" : ""; }
+  function placeholder(name) { return '<span class="empty">[' + name + "]</span>"; }
+
+  // ---------- Render the letter ----------
+  function render() {
+    var amountText = formatAmount(state.amount);
+    var words = amountToWords(state.amount);
+    $("amountWords").textContent = words || "—";
+
+    $("pDate").textContent = formatDate(state.date);
+    $("pRef").textContent = state.ref || "";
+    $("pBank").textContent = state.bank || "";
+    $("pSubject").textContent = state.subject || "";
+    $("pSigTitle").textContent = state.sigTitle || "";
+    $("pSigName").textContent = state.sigName || "";
+
+    var values = {
+      amount: amountText ? num(amountText) : placeholder("المبلغ"),
+      amountWords: words ? escapeHTML(words) : placeholder("المبلغ كتابةً"),
+      cr: state.cr ? num(state.cr) : placeholder("السجل التجاري"),
+      bank: state.bank ? escapeHTML(String(state.bank).replace(/^السادة\s*\/\s*/, "")) : placeholder("الجهة"),
+      facility: escapeHTML(state.facility || ""),
+      period: state.period !== "" && state.period != null ? num(String(state.period)) : placeholder("المدة"),
+      periodUnit: escapeHTML(state.periodUnit || ""),
+      account: state.account ? num(state.account) : placeholder("رقم الحساب"),
+      company: escapeHTML(state.company || ""),
+      invoiceNo: state.invoiceNo ? num(state.invoiceNo) : placeholder("رقم الفاتورة"),
+      entity: state.entity ? escapeHTML(state.entity) : placeholder("الجهة الحكومية"),
+      invoiceDate: state.invoiceDate ? num(formatDate(state.invoiceDate)) : placeholder("تاريخ الفاتورة")
+    };
+    var html = escapeHTML(currentTemplate()).replace(/\{(\w+)\}/g, function (m, key) {
+      return values.hasOwnProperty(key) ? values[key] : m;
+    });
+    $("pBody").innerHTML = html;
+
+    var sheet = $("sheet");
+    sheet.classList.toggle("no-letterhead", !state.showLetterhead);
+    sheet.classList.toggle("no-signature", !state.showSignature);
+  }
+
+  // ---------- Events ----------
+  fields.forEach(function (f) {
+    $(f).addEventListener("input", function () { state[f] = this.value; save(); render(); });
+  });
+  $("template").addEventListener("input", function () { state.templates[state.type] = this.value; save(); render(); });
+  $("resetTemplate").addEventListener("click", function () {
+    delete state.templates[state.type]; $("template").value = currentTemplate(); save(); render();
+  });
+  var radios = document.querySelectorAll('input[name="type"]');
+  for (var i = 0; i < radios.length; i++) {
+    radios[i].addEventListener("change", function () {
+      if (!this.checked) return;
+      applyTypeDefaults(state, this.value);
+      save(); fillPanel(); render();
+    });
+  }
+  $("showLetterhead").addEventListener("change", function () { state.showLetterhead = this.checked; save(); render(); });
+  $("showSignature").addEventListener("change", function () { state.showSignature = this.checked; save(); render(); });
+  $("printBtn").addEventListener("click", function () { window.print(); });
+  $("resetAll").addEventListener("click", function () {
+    if (!confirm("سيتم مسح جميع البيانات المدخلة والعودة إلى القيم الافتراضية. هل تريد المتابعة؟")) return;
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    state = load(); fillPanel(); render();
+  });
+
+  // ---------- Fit the A4 sheet to the preview area ----------
+  function fit() {
+    var wrap = $("sheetWrap"), preview = $("preview");
+    var sheetW = wrap.firstElementChild.offsetWidth, sheetH = wrap.firstElementChild.offsetHeight;
+    var avail = preview.clientWidth - 48;
+    var scale = Math.min(1, avail / sheetW);
+    wrap.style.transform = "scale(" + scale + ")";
+    wrap.style.width = sheetW + "px";
+    wrap.style.height = sheetH * scale + "px";
+  }
+  window.addEventListener("resize", fit);
+
+  fillPanel(); render(); fit();
+})();
+</script>
+</body>
+</html>
