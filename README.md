@@ -1,12 +1,12 @@
 # Bank Financing Request Letter – SharePoint page
 
 صفحة ويب ذاتية الاحتواء (ملف واحد) تولّد خطاب **طلب تمويل بنكي** بنفس تخطيط وخط الخطاب النموذجي
-(ورق أفنية الرسمي + خط Sakkal Majalla + أرقام Calibri)، مع تفقيط تلقائي للمبلغ وفق معيار
+(ورق أفنية الرسمي + خط Sakkal Majalla للنص والأرقام)، مع تفقيط تلقائي للمبلغ وفق معيار
 [tafqit.com](https://tafqit.com/) بالصيغة القانونية «فقط … لا غير».
 
 A self-contained, single-file web page that generates the **bank financing request letter**
-with the exact layout and fonts of the sample letter (Afniah letterhead, Sakkal Majalla for
-Arabic, Calibri for digits). The amount is converted to Arabic words automatically using the
+with the exact layout of the sample letter on the Afniah letterhead, in Sakkal Majalla
+throughout (Arabic text and digits). The amount is converted to Arabic words automatically using the
 [tafqit.com](https://tafqit.com/) standard in legal form ("فقط … لا غير").
 
 ## What the page does
@@ -26,7 +26,7 @@ Arabic, Calibri for digits). The amount is converted to Arabic words automatical
 - **Live A4 preview** on the letterhead. The letterhead can be left out when printing on
   pre-printed paper.
 - **Download as Word (.docx)**. The file is built from the original letterhead template
-  (`letter_head.docx`, A4) with Sakkal Majalla for Arabic and Calibri for digits, so it opens
+  (`letter_head.docx`, A4) with Sakkal Majalla for all text including digits, so it opens
   in Word ready to edit, sign and print. The browser print dialog is also available. Values
   are remembered in the browser (localStorage).
 
@@ -80,10 +80,10 @@ option B.
 
 ### Fonts
 
-The letter uses **Sakkal Majalla** (Arabic) and **Calibri** (digits), both shipped with
-Windows and Microsoft 365, so on company PCs the output matches the sample exactly. On
-machines without those fonts the page falls back to Noto Naskh Arabic and Carlito, which are
-loaded from Google Fonts.
+The page, the preview and the Word file use **Sakkal Majalla** for everything, including
+digits. It ships with Windows and Microsoft 365, so on company PCs the output matches the
+sample exactly. On machines without it the page falls back to Noto Naskh Arabic, loaded from
+Google Fonts, and Word substitutes its own fallback.
 
 ## Output
 

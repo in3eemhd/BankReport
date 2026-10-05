@@ -6,13 +6,14 @@
 <title>خطاب طلب التمويل البنكي – أفنية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Carlito:wght@400;700&family=Noto+Sans+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
 <style>
   /* Layout: fixed editing panel on the start side, the A4 letter scaled to fit beside it. */
   :root {
-    --ui-font: "Segoe UI", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+    /* Sakkal Majalla is the primary face everywhere; Noto Naskh Arabic (Google Fonts) is the fallback where it is not installed. */
     --letter-font: "Sakkal Majalla", "Noto Naskh Arabic", "Traditional Arabic", "Times New Roman", serif;
-    --num-font: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+    --ui-font: var(--letter-font);
+    --num-font: var(--letter-font);
     --bg: #eef1f5;
     --panel: #ffffff;
     --surface-2: #f6f8fb;
@@ -39,7 +40,7 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; }
-  body { background: var(--bg); color: var(--text); font-family: var(--ui-font); font-size: 14px; }
+  body { background: var(--bg); color: var(--text); font-family: var(--ui-font); font-size: 17px; }
 
   /* ---------- App layout ---------- */
   .app { display: grid; grid-template-columns: 400px 1fr; min-height: 100vh; }
@@ -93,7 +94,7 @@
   .sheet .letterhead { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .sheet.no-letterhead .letterhead { display: none; }
   .sheet .content { position: absolute; top: 30mm; right: 23mm; left: 30mm; bottom: 15mm; }
-  .num { font-family: var(--num-font); font-size: 0.86em; direction: ltr; unicode-bidi: isolate; }
+  .num { font-family: var(--num-font); direction: ltr; unicode-bidi: isolate; }
 
   .meta { position: absolute; top: 0; left: 0; text-align: left; line-height: 7mm; }
   .meta div { white-space: nowrap; }
@@ -463,11 +464,12 @@
     return fetch("../assets/letter_template.docx").then(function (r) { return r.arrayBuffer(); });
   }
   function xmlEsc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
-  // Arabic in Sakkal Majalla (complex script), digits and Latin in Calibri, as in the original letter.
+  // Sakkal Majalla for everything: Arabic, digits and Latin, at one size.
   function wRun(text, o) {
     o = o || {};
-    return '<w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Sakkal Majalla"/>' + (o.bold ? "<w:b/><w:bCs/>" : "") +
-      '<w:sz w:val="' + (o.latin || 24) + '"/><w:szCs w:val="' + (o.size || 28) + '"/>' + (o.ltr ? '<w:rtl w:val="0"/>' : "<w:rtl/>") + '</w:rPr><w:t xml:space="preserve">' + xmlEsc(text) + "</w:t></w:r>";
+    var size = o.size || 28;
+    return '<w:r><w:rPr><w:rFonts w:ascii="Sakkal Majalla" w:hAnsi="Sakkal Majalla" w:eastAsia="Sakkal Majalla" w:cs="Sakkal Majalla"/>' + (o.bold ? "<w:b/><w:bCs/>" : "") +
+      '<w:sz w:val="' + size + '"/><w:szCs w:val="' + size + '"/>' + (o.ltr ? '<w:rtl w:val="0"/>' : "<w:rtl/>") + '</w:rPr><w:t xml:space="preserve">' + xmlEsc(text) + "</w:t></w:r>";
   }
   function wPara(runs, o) {
     o = o || {};
@@ -498,7 +500,7 @@
       last = re.lastIndex;
     }
     if (last < body.length) bodyRuns += wRun(body.slice(last));
-    var H = { bold: 1, size: 32, latin: 28 }, S = { bold: 1, size: 30, latin: 26 };
+    var H = { bold: 1, size: 32 }, S = { bold: 1, size: 30 };
     var parts = [
       wPara(wRun("التاريخ: " + formatDate(state.date) + "م"), { jc: "end", after: 0 }),
       wPara(wRun("الصادر: " + (state.ref || "")), { jc: "end", after: 900 }),
