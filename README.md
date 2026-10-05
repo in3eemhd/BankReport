@@ -34,6 +34,7 @@ Arabic, Calibri for digits). The amount is converted to Arabic words automatical
 | --- | --- |
 | `dist/BankReport.aspx` | **Upload this to SharePoint.** Single file, everything inlined. |
 | `dist/BankReport.html` | Same page for any other host, or to open locally. |
+| `dist/BankReport.artifact.html` | Variant published as a Claude artifact (no document skeleton; PDF download instead of the print dialog). |
 | `src/index.html` | Page source (HTML, CSS, JS). |
 | `src/tafqit.js` | Arabic number-to-words library by Mohsen Alyafei (MIT), the engine behind tafqit.com. |
 | `assets/letterhead.jpg` | Letterhead extracted from `letter_head.docx`. |

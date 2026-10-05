@@ -42,6 +42,20 @@ def main() -> None:
         (DIST / name).write_text(html, encoding="utf-8")
         print(f"wrote {DIST / name} ({len(html.encode('utf-8')) / 1024:.0f} KB)")
 
+    # Claude artifact variant: no document skeleton (the publisher adds one),
+    # plus the PDF libraries used by the download-based export.
+    body = html
+    for tag in (r"<!DOCTYPE html>", r"<html[^>]*>", r"</html>", r"<head>", r"</head>",
+                r"<body>", r"</body>", r"<meta[^>]*>"):
+        body = re.sub(tag, "", body, flags=re.I)
+    libs = ('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>\n'
+            '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>\n')
+    marker = "<script>\n/****"
+    assert marker in body, "tafqit script marker not found"
+    body = body.replace(marker, libs + marker, 1).strip() + "\n"
+    (DIST / "BankReport.artifact.html").write_text(body, encoding="utf-8")
+    print(f"wrote {DIST / 'BankReport.artifact.html'} ({len(body.encode('utf-8')) / 1024:.0f} KB)")
+
 
 if __name__ == "__main__":
     main()
