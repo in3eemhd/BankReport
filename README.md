@@ -11,14 +11,13 @@ throughout (Arabic text and digits). The amount is converted to Arabic words aut
 
 ## What the page does
 
-- **Three financing types**: Islamic Financing (تمويل إسلامي – تسهيلات رواتب),
-  Invoice Financing (تمويل فواتير), Government Invoice (فاتورة حكومية). Picking a type
-  loads that type's default subject, facility name, repayment period and body text.
+- **Two financing types**: Islamic Financing (تمويل إسلامي – تسهيلات رواتب) and
+  Invoice Financing (تمويل فواتير). Picking a type loads that type's default subject,
+  facility name, repayment period and body text.
 - **Fixed values** that never change: company (شركة أفنية للاستشارات الهندسية), CR number
   (2051059942) and addressee (بنك الرياض). The bank account is chosen from two fixed
   accounts: 3530002069940 or 3013466169940.
-- **Editable numeric values**: amount, repayment period and unit. The government-invoice
-  type adds invoice number, entity and invoice date.
+- **Editable numeric values**: amount, repayment period and unit.
 - **Automatic Arabic amount in words** (tafqit.com standard, legal form), e.g.
   `785,000` → `فقط سبعمائة وخمسة وثمانون ألف ريال سعودي لا غير`. Halalas are supported.
 - **Editable letter details**: date, reference number, subject, facility name, signatory
@@ -99,11 +98,11 @@ braces are replaced automatically:
 
 ```
 {amount} {amountWords} {cr} {bank} {facility} {period} {periodUnit}
-{account} {company} {invoiceNo} {entity} {invoiceDate}
+{account} {company}
 ```
 
 "استعادة النص الافتراضي" restores the built-in text for that type. To change the built-in
-defaults permanently, edit `TYPES`, `STD_TEMPLATE` and `GOV_TEMPLATE` in `src/index.html`
+defaults permanently, edit `TYPES` and `STD_TEMPLATE` in `src/index.html`
 and run `python3 build.py`. The fixed company, CR, bank and account list are `FIXED` and
 `ACCOUNTS` in the same file.
 

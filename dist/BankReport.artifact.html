@@ -75,8 +75,6 @@
   .fixed { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
   .fixed:last-child { border-bottom: 0; }
   .fixed span { color: var(--muted); }
-  .gov-only { display: none; }
-  .app[data-type="gov"] .gov-only { display: block; }
 
   /* ---------- Preview ---------- */
   .preview { padding: 24px 16px; overflow: auto; min-width: 0; }
@@ -133,7 +131,6 @@
       <div class="types" id="types">
         <label><input type="radio" name="type" value="islamic"> تمويل إسلامي – تسهيلات رواتب <span class="en">Islamic Financing</span></label>
         <label><input type="radio" name="type" value="invoice"> تمويل فواتير <span class="en">Invoice Financing</span></label>
-        <label><input type="radio" name="type" value="gov"> فاتورة حكومية <span class="en">Government Invoice</span></label>
       </div>
     </fieldset>
 
@@ -162,16 +159,6 @@
         <option value="3530002069940">3530002069940</option>
         <option value="3013466169940">3013466169940</option>
       </select>
-    </fieldset>
-
-    <fieldset class="gov-only">
-      <legend>بيانات الفاتورة الحكومية <small>Government invoice</small></legend>
-      <label for="invoiceNo">رقم الفاتورة <small>Invoice number</small></label>
-      <input type="text" id="invoiceNo" class="ltr">
-      <label for="entity">الجهة الحكومية المصدرة لها الفاتورة <small>Government entity</small></label>
-      <input type="text" id="entity">
-      <label for="invoiceDate">تاريخ الفاتورة <small>Invoice date</small></label>
-      <input type="date" id="invoiceDate" class="ltr">
     </fieldset>
 
     <fieldset>
@@ -214,7 +201,7 @@
       <textarea id="template" spellcheck="false"></textarea>
       <div class="hint">
         العناصر بين الأقواس المعقوفة تُستبدل تلقائياً:
-        <span class="ltr">{amount} {amountWords} {cr} {bank} {facility} {period} {periodUnit} {account} {company} {invoiceNo} {entity} {invoiceDate}</span>
+        <span class="ltr">{amount} {amountWords} {cr} {bank} {facility} {period} {periodUnit} {account} {company}</span>
       </div>
       <div class="actions" style="margin-top:8px">
         <button type="button" class="secondary small" id="resetTemplate">استعادة النص الافتراضي لهذا النوع</button>
@@ -428,13 +415,10 @@ return Words999; //Return the Triple in Words
   // ---------- Defaults per financing type (all editable in the panel) ----------
   var STD_TEMPLATE =
     "بالإشارة الى الموضوع أعلاه، نفيدكم نحن/ {company}، سجل تجاري رقم ({cr}) برغبتنا بالحصول على تمويل بنكي بقيمة ({amount}) ريال {amountWords}، بناءً على اتفاقية التمويل الاسلامي مع {bank} ({facility}) وعمل الفترة السداد مدة ({period}) {periodUnit}، وعليه نرجو تحويل المبلغ إلى حسابنا البنكي رقم ({account}).";
-  var GOV_TEMPLATE =
-    "بالإشارة الى الموضوع أعلاه، نفيدكم نحن/ {company}، سجل تجاري رقم ({cr}) برغبتنا بالحصول على تمويل بنكي بقيمة ({amount}) ريال {amountWords}، وذلك مقابل الفاتورة الحكومية رقم ({invoiceNo}) الصادرة إلى {entity} بتاريخ ({invoiceDate})، بناءً على اتفاقية التمويل الاسلامي مع {bank} ({facility}) وعمل الفترة السداد مدة ({period}) {periodUnit}، وعليه نرجو تحويل المبلغ إلى حسابنا البنكي رقم ({account}).";
 
   var TYPES = {
     islamic: { subject: "طلب تمويل بنكي – تسهيلات رواتب", facility: "تمويل رواتب الموظفين", period: 90, periodUnit: "يوم", template: STD_TEMPLATE },
-    invoice: { subject: "طلب تمويل بنكي", facility: "تمويل الفواتير", period: 9, periodUnit: "شهور", template: STD_TEMPLATE },
-    gov: { subject: "طلب تمويل بنكي – فاتورة حكومية", facility: "تمويل الفواتير الحكومية", period: 9, periodUnit: "شهور", template: GOV_TEMPLATE }
+    invoice: { subject: "طلب تمويل بنكي", facility: "تمويل الفواتير", period: 9, periodUnit: "شهور", template: STD_TEMPLATE }
   };
 
   // Fixed values: never change from the panel.
@@ -453,7 +437,6 @@ return Words999; //Return the Triple in Words
     sigName: "م. عبد الله بن عبداللطيف بوشليبي",
     ref: "AF/LT/",
     date: todayISO(),
-    invoiceNo: "", entity: "", invoiceDate: "",
     showLetterhead: true,
     templates: {}
   };
@@ -464,7 +447,7 @@ return Words999; //Return the Triple in Words
   // ---------- Elements ----------
   var $ = function (id) { return document.getElementById(id); };
   var app = $("app");
-  var fields = ["amount", "period", "periodUnit", "account", "invoiceNo", "entity", "invoiceDate", "date", "ref", "subject", "facility", "sigTitle", "sigName"];
+  var fields = ["amount", "period", "periodUnit", "account", "date", "ref", "subject", "facility", "sigTitle", "sigName"];
 
   // ---------- Number to Arabic words (tafqit.com standard, legal form) ----------
   var SAR = ["ريال سعودي", "ريالان سعوديان", "ريالات سعودية", "ريالًا سعوديًا"];
@@ -504,7 +487,9 @@ return Words999; //Return the Triple in Words
     var s = Object.assign({}, COMMON_DEFAULTS, saved || {});
     s.templates = Object.assign({}, (saved && saved.templates) || {});
     delete s.company; delete s.cr; delete s.bank;                       // fixed values live in FIXED
+    delete s.invoiceNo; delete s.entity; delete s.invoiceDate; delete s.templates.gov;
     if (ACCOUNTS.indexOf(s.account) < 0) s.account = ACCOUNTS[0];
+    if (!TYPES[s.type]) applyTypeDefaults(s, "islamic");              // a type that no longer exists
     if (!saved) applyTypeDefaults(s, s.type);
     return s;
   }
@@ -543,8 +528,8 @@ return Words999; //Return the Triple in Words
   function placeholder(name) { return '<span class="empty">[' + name + "]</span>"; }
 
   // ---------- Letter values shared by the preview and the Word export ----------
-  var LABELS = { amount: "المبلغ", amountWords: "المبلغ كتابةً", cr: "السجل التجاري", bank: "الجهة", facility: "اسم التسهيل", period: "المدة", periodUnit: "الوحدة", account: "رقم الحساب", company: "الشركة", invoiceNo: "رقم الفاتورة", entity: "الجهة الحكومية", invoiceDate: "تاريخ الفاتورة" };
-  var NUMERIC = { amount: 1, cr: 1, period: 1, account: 1, invoiceNo: 1, invoiceDate: 1 };
+  var LABELS = { amount: "المبلغ", amountWords: "المبلغ كتابةً", cr: "السجل التجاري", bank: "الجهة", facility: "اسم التسهيل", period: "المدة", periodUnit: "الوحدة", account: "رقم الحساب", company: "الشركة" };
+  var NUMERIC = { amount: 1, cr: 1, period: 1, account: 1 };
   function letterValues() {
     return {
       amount: formatAmount(state.amount),
@@ -555,10 +540,7 @@ return Words999; //Return the Triple in Words
       period: state.period !== "" && state.period != null ? String(state.period) : "",
       periodUnit: state.periodUnit || "",
       account: state.account,
-      company: FIXED.company,
-      invoiceNo: state.invoiceNo || "",
-      entity: state.entity || "",
-      invoiceDate: state.invoiceDate ? formatDate(state.invoiceDate) : ""
+      company: FIXED.company
     };
   }
   function fillTemplate(tpl, values, wrap) {
