@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bank Letter Generator – SharePoint Setup Guide</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: "Segoe UI", "Noto Naskh Arabic", "DejaVu Sans", Arial, sans-serif; font-size: 11pt; line-height: 1.55; color: #1d2733; max-width: 180mm; margin: 0 auto; }
+  h1 { font-size: 22pt; color: #1f4e79; margin: 0 0 4px; }
+  h2 { font-size: 14pt; color: #1f4e79; border-bottom: 2px solid #d7dde6; padding-bottom: 3px; margin: 22px 0 8px; page-break-after: avoid; }
+  .sub { color: #5d6b7c; margin: 0 0 18px; }
+  ol { padding-left: 22px; } li { margin: 4px 0; }
+  code, kbd { font-family: Consolas, "DejaVu Sans Mono", monospace; font-size: 10pt; background: #f1f4f8; padding: 1px 5px; border-radius: 3px; }
+  pre { background: #f1f4f8; padding: 10px 12px; border-radius: 6px; font-size: 9.5pt; white-space: pre-wrap; }
+  .box { border: 1px solid #d7dde6; border-left: 4px solid #2e75b6; padding: 8px 12px; border-radius: 4px; margin: 10px 0; background: #f8fafc; }
+  .warn { border-left-color: #c77d00; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 10.5pt; }
+  th, td { border: 1px solid #d7dde6; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #eef2f7; }
+  [dir=rtl] { direction: rtl; text-align: right; font-size: 12pt; }
+  [dir=rtl] ol { padding-left: 0; padding-right: 22px; }
+  .pb { page-break-before: always; }
+</style>
+</head>
+<body>
+<h1>Bank Letter Generator – SharePoint Setup Guide</h1>
+<p class="sub">Afniah Engineering Consulting Company · everything is done from the SharePoint web interface; no code needed.</p>
+
+<h2>What is in this package</h2>
+<table>
+<tr><th>Folder / file</th><th>What it is</th></tr>
+<tr><td><code>1-Upload-to-SharePoint/BankReport.aspx</code></td><td><b>The page.</b> One self-contained file: letterhead, fonts settings, number-to-words engine and the Word template are all inside it.</td></tr>
+<tr><td><code>2-Backup-standalone/BankReport.html</code></td><td>The same page for use outside SharePoint (double-click to open on any PC, or host on an intranet server).</td></tr>
+<tr><td><code>3-Admin-if-page-is-blocked/Enable-CustomScript.ps1</code></td><td>PowerShell for a SharePoint admin, needed only if step 3 below shows a blocked page.</td></tr>
+<tr><td><code>Guide-SharePoint-Setup.pdf</code></td><td>This guide.</td></tr>
+</table>
+
+<h2>Step 1 – Create the site (one time)</h2>
+<ol>
+<li>Go to <code>https://&lt;your-tenant&gt;.sharepoint.com</code> and sign in with your Microsoft 365 account.</li>
+<li>On the SharePoint start page click <b>+ Create site</b>.</li>
+<li>Choose <b>Team site</b>, then the <b>Standard team</b> template.</li>
+<li>Site name: <b>Bank Letters</b> (or any name). Privacy settings: <b>Private</b>. Language: Arabic or English. Click <b>Next</b>.</li>
+<li>Add the colleagues who will issue bank letters as <b>Members</b>. Click <b>Finish</b>.</li>
+</ol>
+<div class="box">If you cannot see <b>+ Create site</b>, site creation is restricted in your tenant. Ask your IT admin to create a private Team site named Bank Letters and make you an owner.</div>
+
+<h2>Step 2 – Upload the page</h2>
+<ol>
+<li>Open the new site. Click the gear icon <b>⚙</b> (top right) → <b>Site contents</b>.</li>
+<li>Open the <b>Site Assets</b> library. (If it is not listed, click <b>+ New → Document library</b>, name it <b>Tools</b>, and use that instead.)</li>
+<li>Click <b>Upload → Files</b> and choose <code>1-Upload-to-SharePoint/BankReport.aspx</code>.</li>
+<li>Click the uploaded <b>BankReport.aspx</b>. The generator should open in the browser.</li>
+<li>Copy the address from the browser bar. It looks like<br><code>https://&lt;tenant&gt;.sharepoint.com/sites/BankLetters/SiteAssets/BankReport.aspx</code><br>This is the link you share with colleagues.</li>
+</ol>
+
+<h2>Step 3 – If the page does not open (blank page, "blocked", or it downloads)</h2>
+<p>This means <b>custom scripts</b> are disabled for the site, which is Microsoft's default. A SharePoint administrator fixes it in one of two ways:</p>
+<p><b>Option A – from the web (SharePoint admin center)</b></p>
+<ol>
+<li>Go to <code>https://&lt;tenant&gt;-admin.sharepoint.com</code> → <b>Sites → Active sites</b>.</li>
+<li>Select the <b>Bank Letters</b> site → <b>Settings</b> tab (in the side panel).</li>
+<li>Under <b>Custom scripts</b> choose <b>Allow</b> → <b>Save</b>. Wait a few minutes and open the page again.</li>
+</ol>
+<p><b>Option B – PowerShell</b> (run <code>3-Admin-if-page-is-blocked/Enable-CustomScript.ps1</code> after replacing &lt;tenant&gt; and &lt;site&gt;):</p>
+<pre>Connect-SPOService -Url https://&lt;tenant&gt;-admin.sharepoint.com
+Set-SPOSite -Identity https://&lt;tenant&gt;.sharepoint.com/sites/BankLetters -DenyAddAndCustomizePages $false</pre>
+<div class="box warn">On some tenants Microsoft re-blocks custom scripts automatically after 24 hours. If the page stops working later, repeat this step, or use the alternative below.</div>
+<p><b>Alternative without custom scripts:</b> host <code>2-Backup-standalone/BankReport.html</code> on any company HTTPS web server (IIS, Azure Static Web App, etc.), then on a SharePoint page add the <b>Embed</b> web part and paste that address. If SharePoint refuses the address, a site owner adds the server's domain under <b>⚙ → Site information → View all site settings → HTML Field Security</b>.</p>
+
+<h2>Step 4 – Make it easy to find</h2>
+<ol>
+<li>On the site home page click <b>Edit</b> (top right).</li>
+<li>Click <b>+</b> in a section → <b>Quick links</b> (or <b>Button</b>) → paste the page link from Step 2 → title it <b>Bank Letter Generator</b>.</li>
+<li>Click <b>Republish</b>.</li>
+<li>Optional: in the left navigation click <b>Edit</b> → <b>+ Add link</b> → paste the same link.</li>
+</ol>
+
+<h2 class="pb">Step 5 – Daily use</h2>
+<ol>
+<li>Open the page.</li>
+<li>Choose the financing type: <b>تمويل إسلامي – تسهيلات رواتب</b> or <b>تمويل فواتير</b>. The subject, facility name and repayment period change to that type's defaults; all remain editable.</li>
+<li>Enter the amount. The Arabic words appear automatically (فقط … لا غير).</li>
+<li>Set the repayment period, the bank account (two fixed choices), the date and the reference number.</li>
+<li>Click <b>تنزيل ملف Word</b>. The letter downloads as a <code>.docx</code> on the letterhead in Sakkal Majalla. Open it in Word to sign and print.</li>
+<li>Save the Word file in the site's <b>Documents</b> library so the letters are kept with the tool.</li>
+</ol>
+<p>The fields are remembered in your browser, so the next letter starts from the previous values. <b>إعادة تعيين الكل</b> clears them (press twice to confirm).</p>
+
+<h2>Step 6 – Updating the page later</h2>
+<ol>
+<li>Get the new <code>BankReport.aspx</code>.</li>
+<li>In Site Assets click <b>Upload → Files</b>, choose it, and confirm <b>Replace</b> when asked.</li>
+<li>Users press <kbd>Ctrl</kbd>+<kbd>F5</kbd> once to reload.</li>
+</ol>
+
+<h2>Notes</h2>
+<ul>
+<li>The letter uses the <b>Sakkal Majalla</b> font, which ships with Windows and Microsoft 365. On a device without it, the page and Word substitute a fallback font; the file still keeps Sakkal Majalla and shows it on a company PC.</li>
+<li>Company name, commercial registration number and the bank are fixed inside the page and cannot be changed from the form. To change them, ask for a new <code>BankReport.aspx</code>.</li>
+<li>The page stores nothing on the server. Each user's last values stay in their own browser only.</li>
+</ul>
+
+<h2 dir="rtl">ملخص بالعربية</h2>
+<ol dir="rtl">
+<li>أنشئ موقع فريق (Team site) خاصاً باسم «Bank Letters» من صفحة SharePoint الرئيسية عبر <b>+ Create site</b>، وأضف الزملاء أعضاءً.</li>
+<li>من <b>⚙ → Site contents → Site Assets</b> ارفع الملف <code>BankReport.aspx</code> ثم افتحه. رابطه هو الذي تشاركه مع الزملاء.</li>
+<li>إذا ظهرت صفحة فارغة أو محظورة، يفعّل مسؤول SharePoint خيار <b>Custom scripts → Allow</b> من مركز الإدارة (Active sites → الموقع → Settings)، أو يشغّل ملف PowerShell المرفق.</li>
+<li>أضف رابط الصفحة إلى الصفحة الرئيسية للموقع عبر <b>Edit → Quick links</b>.</li>
+<li>الاستخدام اليومي: اختر نوع التمويل، أدخل المبلغ والمدة والحساب والتاريخ ورقم الصادر، ثم <b>تنزيل ملف Word</b>، واحفظ الخطاب في مكتبة Documents.</li>
+<li>لتحديث الصفحة لاحقاً ارفع ملف <code>BankReport.aspx</code> الجديد مكان القديم.</li>
+</ol>
+</body>
+</html>
