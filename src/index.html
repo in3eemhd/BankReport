@@ -54,6 +54,9 @@
   button.secondary { background: #fff; color: var(--accent); }
   button.small { padding: 5px 10px; font-size: 12px; }
   .hint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+  .fixed { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .fixed:last-child { border-bottom: 0; }
+  .fixed span { color: var(--muted); }
   .gov-only { display: none; }
   .app[data-type="gov"] .gov-only { display: block; }
 
@@ -138,10 +141,11 @@
         </div>
       </div>
 
-      <label for="cr">رقم السجل التجاري <small>CR number</small></label>
-      <input type="text" id="cr" class="ltr" inputmode="numeric">
-      <label for="account">رقم الحساب البنكي <small>Bank account / IBAN</small></label>
-      <input type="text" id="account" class="ltr" inputmode="numeric">
+      <label for="account">رقم الحساب البنكي <small>Bank account</small></label>
+      <select id="account" class="ltr">
+        <option value="3530002069940">3530002069940</option>
+        <option value="3013466169940">3013466169940</option>
+      </select>
     </fieldset>
 
     <fieldset class="gov-only">
@@ -152,6 +156,13 @@
       <input type="text" id="entity">
       <label for="invoiceDate">تاريخ الفاتورة <small>Invoice date</small></label>
       <input type="date" id="invoiceDate" class="ltr">
+    </fieldset>
+
+    <fieldset>
+      <legend>بيانات ثابتة <small>Fixed</small></legend>
+      <div class="fixed"><span>الشركة</span><b id="fixedCompany"></b></div>
+      <div class="fixed"><span>السجل التجاري</span><b id="fixedCr" class="ltr"></b></div>
+      <div class="fixed"><span>الجهة</span><b id="fixedBank"></b></div>
     </fieldset>
 
     <fieldset>
@@ -166,14 +177,10 @@
           <input type="text" id="ref" class="ltr" placeholder="AF/LT/2609155">
         </div>
       </div>
-      <label for="bank">الجهة الموجّه إليها <small>Addressee</small></label>
-      <input type="text" id="bank">
       <label for="subject">الموضوع <small>Subject</small></label>
       <input type="text" id="subject">
       <label for="facility">اسم التسهيل (بين قوسين) <small>Facility name</small></label>
       <input type="text" id="facility">
-      <label for="company">اسم الشركة <small>Company</small></label>
-      <input type="text" id="company">
       <div class="row">
         <div>
           <label for="sigTitle">المسمّى الوظيفي للموقّع <small>Signatory title</small></label>
@@ -257,13 +264,18 @@
     gov: { subject: "طلب تمويل بنكي – فاتورة حكومية", facility: "تمويل الفواتير الحكومية", period: 9, periodUnit: "شهور", template: GOV_TEMPLATE }
   };
 
+  // Fixed values: never change from the panel.
+  var FIXED = {
+    company: "شركة أفنية للاستشارات الهندسية",
+    cr: "2051059942",
+    bank: "بنك الرياض"
+  };
+  var ACCOUNTS = ["3530002069940", "3013466169940"];
+
   var COMMON_DEFAULTS = {
     type: "islamic",
     amount: "",
-    cr: "2051059942",
-    account: "3530002069940",
-    bank: "السادة / بنك الرياض",
-    company: "شركة أفنية للاستشارات الهندسية",
+    account: ACCOUNTS[0],
     sigTitle: "الرئيس التنفيذي",
     sigName: "م. عبد الله بن عبداللطيف بوشليبي",
     ref: "AF/LT/",
@@ -279,7 +291,7 @@
   // ---------- Elements ----------
   var $ = function (id) { return document.getElementById(id); };
   var app = $("app");
-  var fields = ["amount", "period", "periodUnit", "cr", "account", "invoiceNo", "entity", "invoiceDate", "date", "ref", "bank", "subject", "facility", "company", "sigTitle", "sigName"];
+  var fields = ["amount", "period", "periodUnit", "account", "invoiceNo", "entity", "invoiceDate", "date", "ref", "subject", "facility", "sigTitle", "sigName"];
 
   // ---------- Number to Arabic words (tafqit.com standard, legal form) ----------
   var SAR = ["ريال سعودي", "ريالان سعوديان", "ريالات سعودية", "ريالًا سعوديًا"];
@@ -318,6 +330,8 @@
     try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (e) { saved = null; }
     var s = Object.assign({}, COMMON_DEFAULTS, saved || {});
     s.templates = Object.assign({}, (saved && saved.templates) || {});
+    delete s.company; delete s.cr; delete s.bank;                       // fixed values live in FIXED
+    if (ACCOUNTS.indexOf(s.account) < 0) s.account = ACCOUNTS[0];
     if (!saved) applyTypeDefaults(s, s.type);
     return s;
   }
@@ -339,6 +353,9 @@
   // ---------- Panel <-> state ----------
   function fillPanel() {
     app.setAttribute("data-type", state.type);
+    $("fixedCompany").textContent = FIXED.company;
+    $("fixedCr").textContent = FIXED.cr;
+    $("fixedBank").textContent = "السادة / " + FIXED.bank;
     var radios = document.querySelectorAll('input[name="type"]');
     for (var i = 0; i < radios.length; i++) radios[i].checked = radios[i].value === state.type;
     fields.forEach(function (f) { $(f).value = state[f] == null ? "" : state[f]; });
@@ -361,7 +378,7 @@
 
     $("pDate").textContent = formatDate(state.date);
     $("pRef").textContent = state.ref || "";
-    $("pBank").textContent = state.bank || "";
+    $("pBank").textContent = "السادة / " + FIXED.bank;
     $("pSubject").textContent = state.subject || "";
     $("pSigTitle").textContent = state.sigTitle || "";
     $("pSigName").textContent = state.sigName || "";
@@ -369,13 +386,13 @@
     var values = {
       amount: amountText ? num(amountText) : placeholder("المبلغ"),
       amountWords: words ? escapeHTML(words) : placeholder("المبلغ كتابةً"),
-      cr: state.cr ? num(state.cr) : placeholder("السجل التجاري"),
-      bank: state.bank ? escapeHTML(String(state.bank).replace(/^السادة\s*\/\s*/, "")) : placeholder("الجهة"),
+      cr: num(FIXED.cr),
+      bank: escapeHTML(FIXED.bank),
       facility: escapeHTML(state.facility || ""),
       period: state.period !== "" && state.period != null ? num(String(state.period)) : placeholder("المدة"),
       periodUnit: escapeHTML(state.periodUnit || ""),
-      account: state.account ? num(state.account) : placeholder("رقم الحساب"),
-      company: escapeHTML(state.company || ""),
+      account: num(state.account),
+      company: escapeHTML(FIXED.company),
       invoiceNo: state.invoiceNo ? num(state.invoiceNo) : placeholder("رقم الفاتورة"),
       entity: state.entity ? escapeHTML(state.entity) : placeholder("الجهة الحكومية"),
       invoiceDate: state.invoiceDate ? num(formatDate(state.invoiceDate)) : placeholder("تاريخ الفاتورة")
