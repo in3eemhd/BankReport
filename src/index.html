@@ -106,9 +106,7 @@
   .bold { font-weight: bold; }
   .addr { font-size: 16pt; }
   .body { text-align: justify; margin-bottom: 5mm; }
-  .sig { margin-top: 24mm; width: 51mm; text-align: center; font-weight: bold; font-size: 15pt; line-height: 7.4mm; position: relative; margin-inline-start: auto; white-space: nowrap; }
-  .sig .signature { position: absolute; top: 11.5mm; left: 1mm; width: 68mm; height: auto; }
-  .sheet.no-signature .signature { display: none; }
+  .sig { margin-top: 24mm; width: 51mm; text-align: center; font-weight: bold; font-size: 15pt; line-height: 7.4mm; margin-inline-start: auto; white-space: nowrap; }
   .empty { color: var(--danger); }
 
   @media (max-width: 900px) {
@@ -228,15 +226,15 @@
     </fieldset>
 
     <fieldset>
-      <legend>خيارات الطباعة <small>Print options</small></legend>
-      <div class="check"><input type="checkbox" id="showLetterhead" checked><label for="showLetterhead" style="margin:0">إظهار الورق الرسمي (ألغِ التحديد عند الطباعة على ورق مطبوع مسبقاً)</label></div>
-      <div class="check"><input type="checkbox" id="showSignature" checked><label for="showSignature" style="margin:0">إظهار التوقيع</label></div>
+      <legend>الإخراج <small>Output</small></legend>
+      <div class="check"><input type="checkbox" id="showLetterhead" checked><label for="showLetterhead" style="margin:0">تضمين الورق الرسمي (ألغِ التحديد عند الطباعة على ورق مطبوع مسبقاً)</label></div>
       <div class="actions">
-        <button type="button" id="printBtn">طباعة / حفظ PDF</button>
+        <button type="button" id="downloadBtn">تنزيل ملف Word</button>
+        <button type="button" class="secondary" id="printBtn">طباعة</button>
         <button type="button" class="secondary" id="resetAll">إعادة تعيين الكل</button>
       </div>
       <div class="status" id="status" role="status"></div>
-      <div class="hint"><span id="printHint">في نافذة الطباعة اختر الوجهة «حفظ بصيغة PDF» أو الطابعة، وحجم الورق A4، والهوامش «بلا» (None).</span> تُحفظ بياناتك تلقائياً في هذا المتصفح.</div>
+      <div class="hint">ملف Word يُبنى على قالب الورق الرسمي الأصلي (A4) بخط Sakkal Majalla، ويمكن تعديله وطباعته من Word مباشرة. تُحفظ بياناتك تلقائياً في هذا المتصفح.</div>
     </fieldset>
   </aside>
 
@@ -262,7 +260,6 @@
           <div class="sig">
             <div id="pSigTitle"></div>
             <div id="pSigName"></div>
-            <img class="signature" src="../assets/signature.png" alt="">
           </div>
         </div>
       </div>
@@ -270,6 +267,7 @@
   </main>
 </div>
 
+<script src="jszip.min.js"></script>
 <script src="tafqit.js"></script>
 <script>
 (function () {
@@ -304,7 +302,7 @@
     ref: "AF/LT/",
     date: todayISO(),
     invoiceNo: "", entity: "", invoiceDate: "",
-    showLetterhead: true, showSignature: true,
+    showLetterhead: true,
     templates: {}
   };
 
@@ -384,7 +382,6 @@
     fields.forEach(function (f) { $(f).value = state[f] == null ? "" : state[f]; });
     $("template").value = currentTemplate();
     $("showLetterhead").checked = !!state.showLetterhead;
-    $("showSignature").checked = !!state.showSignature;
   }
 
   function escapeHTML(s) {
@@ -392,6 +389,29 @@
   }
   function num(s) { return s ? '<span class="num">' + escapeHTML(s) + "</span>" : ""; }
   function placeholder(name) { return '<span class="empty">[' + name + "]</span>"; }
+
+  // ---------- Letter values shared by the preview and the Word export ----------
+  var LABELS = { amount: "المبلغ", amountWords: "المبلغ كتابةً", cr: "السجل التجاري", bank: "الجهة", facility: "اسم التسهيل", period: "المدة", periodUnit: "الوحدة", account: "رقم الحساب", company: "الشركة", invoiceNo: "رقم الفاتورة", entity: "الجهة الحكومية", invoiceDate: "تاريخ الفاتورة" };
+  var NUMERIC = { amount: 1, cr: 1, period: 1, account: 1, invoiceNo: 1, invoiceDate: 1 };
+  function letterValues() {
+    return {
+      amount: formatAmount(state.amount),
+      amountWords: amountToWords(state.amount),
+      cr: FIXED.cr,
+      bank: FIXED.bank,
+      facility: state.facility || "",
+      period: state.period !== "" && state.period != null ? String(state.period) : "",
+      periodUnit: state.periodUnit || "",
+      account: state.account,
+      company: FIXED.company,
+      invoiceNo: state.invoiceNo || "",
+      entity: state.entity || "",
+      invoiceDate: state.invoiceDate ? formatDate(state.invoiceDate) : ""
+    };
+  }
+  function fillTemplate(tpl, values, wrap) {
+    return tpl.replace(/\{(\w+)\}/g, function (m, key) { return values.hasOwnProperty(key) ? wrap(key, values[key]) : m; });
+  }
 
   // ---------- Render the letter ----------
   function render() {
@@ -406,28 +426,13 @@
     $("pSigTitle").textContent = state.sigTitle || "";
     $("pSigName").textContent = state.sigName || "";
 
-    var values = {
-      amount: amountText ? num(amountText) : placeholder("المبلغ"),
-      amountWords: words ? escapeHTML(words) : placeholder("المبلغ كتابةً"),
-      cr: num(FIXED.cr),
-      bank: escapeHTML(FIXED.bank),
-      facility: escapeHTML(state.facility || ""),
-      period: state.period !== "" && state.period != null ? num(String(state.period)) : placeholder("المدة"),
-      periodUnit: escapeHTML(state.periodUnit || ""),
-      account: num(state.account),
-      company: escapeHTML(FIXED.company),
-      invoiceNo: state.invoiceNo ? num(state.invoiceNo) : placeholder("رقم الفاتورة"),
-      entity: state.entity ? escapeHTML(state.entity) : placeholder("الجهة الحكومية"),
-      invoiceDate: state.invoiceDate ? num(formatDate(state.invoiceDate)) : placeholder("تاريخ الفاتورة")
-    };
-    var html = escapeHTML(currentTemplate()).replace(/\{(\w+)\}/g, function (m, key) {
-      return values.hasOwnProperty(key) ? values[key] : m;
+    $("pBody").innerHTML = fillTemplate(escapeHTML(currentTemplate()), letterValues(), function (key, value) {
+      if (!value) return placeholder(LABELS[key]);
+      return NUMERIC[key] ? num(value) : escapeHTML(value);
     });
-    $("pBody").innerHTML = html;
 
     var sheet = $("sheet");
     sheet.classList.toggle("no-letterhead", !state.showLetterhead);
-    sheet.classList.toggle("no-signature", !state.showSignature);
   }
 
   // ---------- Events ----------
@@ -447,52 +452,115 @@
     });
   }
   $("showLetterhead").addEventListener("change", function () { state.showLetterhead = this.checked; save(); render(); });
-  $("showSignature").addEventListener("change", function () { state.showSignature = this.checked; save(); render(); });
-  // ---------- Export: browser print dialog, or a generated PDF when hosted as a Claude artifact ----------
+  // ---------- Word export: fill the original letterhead template (A4) with the letter ----------
+  var TEMPLATE_DOCX_B64 = "__TEMPLATE_DOCX_B64__"; // replaced by build.py; src falls back to fetching the asset
+  function templateBytes() {
+    if (TEMPLATE_DOCX_B64.indexOf("__") !== 0) {
+      var bin = atob(TEMPLATE_DOCX_B64), bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return Promise.resolve(bytes);
+    }
+    return fetch("../assets/letter_template.docx").then(function (r) { return r.arrayBuffer(); });
+  }
+  function xmlEsc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  // Arabic in Sakkal Majalla (complex script), digits and Latin in Calibri, as in the original letter.
+  function wRun(text, o) {
+    o = o || {};
+    return '<w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Sakkal Majalla"/>' + (o.bold ? "<w:b/><w:bCs/>" : "") +
+      '<w:sz w:val="' + (o.latin || 24) + '"/><w:szCs w:val="' + (o.size || 28) + '"/>' + (o.ltr ? '<w:rtl w:val="0"/>' : "<w:rtl/>") + '</w:rPr><w:t xml:space="preserve">' + xmlEsc(text) + "</w:t></w:r>";
+  }
+  function wPara(runs, o) {
+    o = o || {};
+    return "<w:p><w:pPr><w:bidi/>" +
+      '<w:spacing w:before="' + (o.before || 0) + '" w:beforeAutospacing="0" w:after="' + (o.after == null ? 280 : o.after) + '" w:afterAutospacing="0" w:line="' + (o.line || 276) + '" w:lineRule="auto"/>' +
+      '<w:ind w:left="0" w:right="0" w:hanging="0"' + (o.indEnd ? ' w:end="' + o.indEnd + '"' : "") + "/>" +
+      '<w:jc w:val="' + (o.jc || "both") + '"/></w:pPr>' + runs + "</w:p>";
+  }
+  // "السادة / بنك الرياض   المحترمين": second part at a fixed tab stop measured from the right margin, as in the sample.
+  function wTwoPart(firstRuns, secondRuns, tabPos, o) {
+    o = o || {};
+    return "<w:p><w:pPr>" + '<w:tabs><w:tab w:val="left" w:pos="' + tabPos + '"/></w:tabs><w:bidi/>' +
+      '<w:spacing w:before="0" w:beforeAutospacing="0" w:after="' + (o.after == null ? 280 : o.after) + '" w:afterAutospacing="0" w:line="' + (o.line || 276) + '" w:lineRule="auto"/>' +
+      '<w:ind w:left="0" w:right="0" w:hanging="0"/><w:jc w:val="start"/></w:pPr>' + firstRuns + "<w:r><w:tab/></w:r>" + secondRuns + "</w:p>";
+  }
+  function buildDocumentXml() {
+    // Numbers (with their parentheses) become left-to-right runs, as Word does itself for "(785,000)" inside
+    // Arabic text: they keep Calibri, read correctly, and never break between the bracket and the digits.
+    var MARK = "\u0001";
+    var body = fillTemplate(currentTemplate(), letterValues(), function (key, value) {
+      if (!value) return "……";
+      return NUMERIC[key] ? MARK + value + MARK : value;
+    });
+    var bodyRuns = "", re = /\(?\u0001[^\u0001]*\u0001\)?/g, last = 0, m;
+    while ((m = re.exec(body))) {
+      if (m.index > last) bodyRuns += wRun(body.slice(last, m.index));
+      bodyRuns += wRun(m[0].replace(/\u0001/g, "\u2060"), { ltr: 1 }); // U+2060 word joiner: no break next to the digits
+      last = re.lastIndex;
+    }
+    if (last < body.length) bodyRuns += wRun(body.slice(last));
+    var H = { bold: 1, size: 32, latin: 28 }, S = { bold: 1, size: 30, latin: 26 };
+    var parts = [
+      wPara(wRun("التاريخ: " + formatDate(state.date) + "م"), { jc: "end", after: 0 }),
+      wPara(wRun("الصادر: " + (state.ref || "")), { jc: "end", after: 900 }),
+      wTwoPart(wRun("السادة / " + FIXED.bank, H), wRun("المحترمين", H), 4479),
+      wTwoPart(wRun("السلام عليكم ورحمة الله وبركاته"), wRun("وبعد"), 2891),
+      wPara(wRun("الموضوع: " + (state.subject || ""), { bold: 1 })),
+      wPara(bodyRuns),
+      wPara(wRun("شاكرين ومقدرين حسن تعاونكم. هذا والله ولي التوفيق.")),
+      wPara(wRun("وتقبلوا وافر الاحترام والتقدير ,,,,,"), { after: 1360 }),
+      wPara(wRun(state.sigTitle || "", S), { jc: "end", after: 0, indEnd: 709 }),
+      wPara(wRun(state.sigName || "", S), { jc: "end", after: 0 })
+    ];
+    var sect = "<w:sectPr>" + (state.showLetterhead ? '<w:headerReference w:type="default" r:id="rId7"/>' : "") +
+      '<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1701" w:right="1304" w:bottom="850" w:left="1701" w:header="0" w:footer="0" w:gutter="0"/><w:cols w:space="720"/><w:docGrid w:linePitch="360"/></w:sectPr>';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>' +
+      parts.join("") + sect + "</w:body></w:document>";
+  }
+  function buildDocxBlob() {
+    return templateBytes()
+      .then(function (bytes) { return JSZip.loadAsync(bytes); })
+      .then(function (zip) {
+        zip.file("word/document.xml", buildDocumentXml());
+        return zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", compression: "DEFLATE" });
+      });
+  }
+  function docxFilename() {
+    var ref = String(state.ref || "").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "");
+    return "bank-letter-" + (ref && ref !== "AF-LT" ? ref : formatDate(state.date).replace(/\//g, "-")) + ".docx";
+  }
+
+  // The Claude artifact viewer blocks the print dialog and plain downloads; it offers a save prompt instead.
   var downloadsReady = (window.claude && typeof window.claude.use === "function")
     ? window.claude.use("downloads").catch(function () { return null; })
     : Promise.resolve(null);
-  downloadsReady.then(function (dl) {
-    if (dl) {
-      $("printBtn").textContent = "تنزيل PDF";
-      $("printHint").textContent = "يُنشأ ملف PDF بحجم A4 من المعاينة ويُعرض عليك حفظه. للطباعة افتح الملف المحفوظ واطبعه بلا هوامش.";
-    }
-  });
+  if (window.claude && typeof window.claude.use === "function") $("printBtn").hidden = true;
   function setStatus(msg, isError) { var el = $("status"); el.textContent = msg || ""; el.classList.toggle("error", !!isError); }
 
-  function sheetToPdfBlob() {
-    var wrap = $("sheetWrap"), saved = { t: wrap.style.transform, w: wrap.style.width, h: wrap.style.height };
-    wrap.style.transform = "none"; wrap.style.width = ""; wrap.style.height = "";
-    return html2canvas($("sheet"), { scale: 2.5, backgroundColor: "#ffffff", logging: false })
-      .then(function (canvas) {
-        var pdf = new jspdf.jsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true });
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
-        return pdf.output("blob");
-      })
-      .finally(function () { wrap.style.transform = saved.t; wrap.style.width = saved.w; wrap.style.height = saved.h; });
-  }
-  function pdfFilename() {
-    var ref = String(state.ref || "").replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "");
-    return "bank-letter-" + (ref && ref !== "AF-LT" ? ref : formatDate(state.date).replace(/\//g, "-")) + ".pdf";
-  }
-  $("printBtn").addEventListener("click", function () {
+  $("downloadBtn").addEventListener("click", function () {
     var btn = this;
-    downloadsReady.then(function (dl) {
-      if (!dl) { window.print(); return; }
-      if (!window.html2canvas || !window.jspdf) { setStatus("تعذّر تحميل مكوّن إنشاء PDF. أعد تحميل الصفحة وحاول مرة أخرى.", true); return; }
-      btn.disabled = true; setStatus("جارٍ إنشاء ملف PDF…");
-      sheetToPdfBlob()
-        .then(function (blob) { return dl.save({ filename: pdfFilename(), data: blob }); })
-        .then(function () { setStatus("تم حفظ الملف."); })
-        .catch(function (err) {
-          var code = err && err.code;
-          if (code === "declined") setStatus("تم إلغاء الحفظ.");
-          else if (code === "rate_limited") setStatus("يوجد طلب حفظ مفتوح بالفعل. أغلقه ثم حاول مرة أخرى.", true);
-          else setStatus("تعذّر حفظ الملف" + (err && err.message ? ": " + err.message : "."), true);
-        })
-        .finally(function () { btn.disabled = false; });
-    });
+    if (!window.JSZip) { setStatus("تعذّر تحميل مكوّن إنشاء الملف. أعد تحميل الصفحة وحاول مرة أخرى.", true); return; }
+    btn.disabled = true; setStatus("جارٍ إنشاء ملف Word…");
+    var name = docxFilename();
+    Promise.all([buildDocxBlob(), downloadsReady])
+      .then(function (r) {
+        var blob = r[0], dl = r[1];
+        if (dl) return dl.save({ filename: name, data: blob });
+        var a = document.createElement("a"), url = URL.createObjectURL(blob);
+        a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+        return { status: "saved" };
+      })
+      .then(function () { setStatus("تم إنشاء الملف: " + name); })
+      .catch(function (err) {
+        var code = err && err.code;
+        if (code === "declined") setStatus("تم إلغاء الحفظ.");
+        else if (code === "rate_limited") setStatus("يوجد طلب حفظ مفتوح بالفعل. أغلقه ثم حاول مرة أخرى.", true);
+        else setStatus("تعذّر إنشاء الملف" + (err && err.message ? ": " + err.message : "."), true);
+      })
+      .finally(function () { btn.disabled = false; });
   });
+  $("printBtn").addEventListener("click", function () { window.print(); });
 
   var resetArmed = null;
   $("resetAll").addEventListener("click", function () {

@@ -23,10 +23,12 @@ Arabic, Calibri for digits). The amount is converted to Arabic words automatical
   `785,000` → `فقط سبعمائة وخمسة وثمانون ألف ريال سعودي لا غير`. Halalas are supported.
 - **Editable letter details**: date, reference number, subject, facility name, signatory
   title and name, and the full body text template.
-- **Live A4 preview** on the letterhead, with the signature. Both can be hidden when
-  printing on pre-printed paper.
-- **Print / Save as PDF** from the browser (A4, no margins). Values are remembered in the
-  browser (localStorage).
+- **Live A4 preview** on the letterhead. The letterhead can be left out when printing on
+  pre-printed paper.
+- **Download as Word (.docx)**. The file is built from the original letterhead template
+  (`letter_head.docx`, A4) with Sakkal Majalla for Arabic and Calibri for digits, so it opens
+  in Word ready to edit, sign and print. The browser print dialog is also available. Values
+  are remembered in the browser (localStorage).
 
 ## Files
 
@@ -34,11 +36,12 @@ Arabic, Calibri for digits). The amount is converted to Arabic words automatical
 | --- | --- |
 | `dist/BankReport.aspx` | **Upload this to SharePoint.** Single file, everything inlined. |
 | `dist/BankReport.html` | Same page for any other host, or to open locally. |
-| `dist/BankReport.artifact.html` | Variant published as a Claude artifact (no document skeleton; PDF download instead of the print dialog). |
+| `dist/BankReport.artifact.html` | Variant published as a Claude artifact (no document skeleton; the Word file is offered through the viewer's save prompt). |
 | `src/index.html` | Page source (HTML, CSS, JS). |
 | `src/tafqit.js` | Arabic number-to-words library by Mohsen Alyafei (MIT), the engine behind tafqit.com. |
-| `assets/letterhead.jpg` | Letterhead extracted from `letter_head.docx`. |
-| `assets/signature.png` | Signature extracted from the sample letter (white background removed). |
+| `src/jszip.min.js` | JSZip 3.10.1 (MIT), used to assemble the .docx in the browser. |
+| `assets/letterhead.jpg` | Letterhead extracted from `letter_head.docx` (preview background). |
+| `assets/letter_template.docx` | `letter_head.docx` with the letterhead sized to a full A4 page; the Word export fills its body. |
 | `build.py` | Rebuilds `dist/` from `src/` and `assets/` (Python 3, no dependencies). |
 
 ## Adding the page to SharePoint
@@ -82,11 +85,12 @@ Windows and Microsoft 365, so on company PCs the output matches the sample exact
 machines without those fonts the page falls back to Noto Naskh Arabic and Carlito, which are
 loaded from Google Fonts.
 
-## Printing
+## Output
 
-Click **طباعة / حفظ PDF**. In the print dialog choose **Save as PDF** (or the printer),
-paper size **A4**, margins **None**. Untick "إظهار الورق الرسمي" to print on pre-printed
-letterhead, and "إظهار التوقيع" to sign by hand.
+Click **تنزيل ملف Word** to download the letter as `.docx`. Untick "تضمين الورق الرسمي" to
+get a file without the letterhead image, for printing on pre-printed paper. The letter has
+no signature image; it is signed by hand or in Word. **طباعة** opens the browser print
+dialog (choose A4, margins None).
 
 ## Editing the wording
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build the self-contained SharePoint page.
 
-Reads src/index.html, inlines src/tafqit.js and the images in assets/ as
+Reads src/index.html, inlines the scripts in src/, the images in assets/ as
 data URIs, and writes dist/BankReport.html plus an identical
 dist/BankReport.aspx (SharePoint renders .aspx files inline instead of
 forcing a download).  No third-party dependencies.
@@ -37,22 +37,22 @@ def main() -> None:
 
     html = re.sub(r'((?:src|href)=")\.\./assets/([^"]+)(")', inline_asset, html)
 
+    # Embed the letterhead Word template used by the Word export.
+    template = base64.b64encode((ROOT / "assets" / "letter_template.docx").read_bytes()).decode()
+    assert html.count("__TEMPLATE_DOCX_B64__") == 1
+    html = html.replace("__TEMPLATE_DOCX_B64__", template)
+
     DIST.mkdir(exist_ok=True)
     for name in ("BankReport.html", "BankReport.aspx"):
         (DIST / name).write_text(html, encoding="utf-8")
         print(f"wrote {DIST / name} ({len(html.encode('utf-8')) / 1024:.0f} KB)")
 
-    # Claude artifact variant: no document skeleton (the publisher adds one),
-    # plus the PDF libraries used by the download-based export.
+    # Claude artifact variant: no document skeleton (the publisher adds one).
     body = html
     for tag in (r"<!DOCTYPE html>", r"<html[^>]*>", r"</html>", r"<head>", r"</head>",
                 r"<body>", r"</body>", r"<meta[^>]*>"):
         body = re.sub(tag, "", body, flags=re.I)
-    libs = ('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>\n'
-            '<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>\n')
-    marker = "<script>\n/****"
-    assert marker in body, "tafqit script marker not found"
-    body = body.replace(marker, libs + marker, 1).strip() + "\n"
+    body = body.strip() + "\n"
     (DIST / "BankReport.artifact.html").write_text(body, encoding="utf-8")
     print(f"wrote {DIST / 'BankReport.artifact.html'} ({len(body.encode('utf-8')) / 1024:.0f} KB)")
 
